@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(dramsim3)
 
 set(default_build_type "Release")
@@ -26,7 +26,7 @@ add_library(json INTERFACE)
 target_include_directories(json INTERFACE ext/headers)
 
 # Main DRAMSim Lib
-add_library(dramsim3 SHARED
+add_library(dramsim3 STATIC
     src/bankstate.cc
     src/channel_state.cc
     src/command_queue.cc
@@ -80,40 +80,7 @@ target_include_directories(dramsim3 INTERFACE src)
 target_compile_options(dramsim3 PRIVATE -Wall)
 target_link_libraries(dramsim3 PRIVATE inih format)
 set_target_properties(dramsim3 PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}
     CXX_STANDARD 11
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
-)
-
-# trace CPU, .etc
-add_executable(dramsim3main src/main.cc src/cpu.cc)
-target_link_libraries(dramsim3main PRIVATE dramsim3 args)
-target_compile_options(dramsim3main PRIVATE)
-set_target_properties(dramsim3main PROPERTIES
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
-)
-
-# Unit testing
-add_library(Catch INTERFACE)
-target_include_directories(Catch INTERFACE ext/headers)
-
-add_executable(dramsim3test EXCLUDE_FROM_ALL
-    tests/test_config.cc
-    tests/test_dramsys.cc
-    tests/test_hmcsys.cc # IDK somehow this can literally crush your computer
-)
-target_link_libraries(dramsim3test Catch dramsim3)
-target_include_directories(dramsim3test PRIVATE src/)
-
-# We have to use this custome command because there's a bug in cmake
-# that if you do `make test` it doesn't build your updated test files
-# so we're stucking with `make dramsim3test` for now
-add_custom_command(
-    TARGET dramsim3test POST_BUILD
-    COMMAND dramsim3test
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    DEPENDS dramsim3test dramsim3
 )
